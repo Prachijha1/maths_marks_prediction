@@ -1,0 +1,23 @@
+# Environments & Secrets (NEVER push passwords to Git)
+.env
+.env*.local
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+scratch/

@@ -1,0 +1,19 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: student_predictor_web
+    restart: unless-stopped
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - .env
+
+    environment:
+      - MONGO_DB_NAME=student_performance_db
+
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 app:app

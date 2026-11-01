@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Marks Predictor - ML & MongoDB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(23, 31, 51, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-primary: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --success: #10b981;
+      --input-bg: #111827;
+      --input-border: #1f293d;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(236, 72, 153, 0.1) 0%, transparent 40%);
+      padding: 30px 20px;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .badge-container {
+      display: inline-flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+    }
+
+    .badge.success {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    .card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #e2e8f0;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.92rem;
+      transition: all 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    select option {
+      background: #111827;
+      color: #f1f5f9;
+    }
+
+    .score-input-container {
+      position: relative;
+    }
+
+    .score-input-container span {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    button.btn-submit {
+      width: 100%;
+      margin-top: 10px;
+      padding: 13px;
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    button.btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    button.btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* Prediction Result Card */
+    .result-box {
+      text-align: center;
+      padding: 24px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      margin-bottom: 22px;
+      box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.08);
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .result-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+
+    .result-score {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.2rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .result-score span {
+      font-size: 1.5rem;
+      color: #64748b;
+      -webkit-text-fill-color: #64748b;
+    }
+
+    .result-target-name {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    .db-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    /* History Table */
+    .history-section {
+      margin-top: 10px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      max-height: 290px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background: #111827;
+      padding: 10px 12px;
+      color: #94a3b8;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .badge-score {
+      font-weight: 700;
+      color: #818cf8;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 10px;
+      color: #64748b;
+      font-size: 0.88rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 35px;
+      color: #475569;
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge-container">
+        <div class="badge success">
+          <span class="dot"></span> MongoDB Connected
+        </div>
+        <div class="badge">
+          Model: Ridge Regression (88% R²)
+        </div>
+      </div>
+      <h1>Student Marks Predictor</h1>
+      <p class="subtitle">Machine Learning Exam Marks Prediction & Persistent MongoDB History</p>
+    </header>
+
+    <div class="grid">
+      <!-- Input Form Card -->
+      <div class="card">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <line x1="19" x2="19" y1="8" y2="14" />
+            <line x1="22" x2="16" y1="11" y2="11" />
+          </svg>
+          Student Profile & Exam Inputs
+        </h2>
+
+        <form id="prediction-form" action="/predict" method="POST" autocomplete="off">
+          <!-- Client / Student Name -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="client_name" style="margin-bottom: 0;">Student Name or ID</label>
+              <span id="active-user-badge" style="font-size: 0.75rem; color: #a5b4fc;">
+                {% if current_client %}
+                  Active: <strong>{{ current_client }}</strong> (<a href="/clear-session" id="switch-user-link" style="color: #f43f5e; text-decoration: none;">Switch</a>)
+                {% endif %}
+              </span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input 
+                type="text" 
+                id="client_name" 
+                name="client_name" 
+                placeholder="Enter your student name (e.g. Alex Johnson)" 
+                value="{{ current_client if current_client else '' }}" 
+                required
+                style="flex: 1;"
+              >
+              <button type="button" id="lookup-btn" class="btn-submit" style="width: auto; padding: 0 14px; font-size: 0.8rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); box-shadow: none;">
+                Load History
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Gender -->
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender">
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+
+            <!-- Race / Ethnicity -->
+            <div class="form-group">
+              <label for="race_ethnicity">Race / Ethnicity</label>
+              <select id="race_ethnicity" name="race_ethnicity">
+                <option value="group A">Group A</option>
+                <option value="group B" selected>Group B</option>
+                <option value="group C">Group C</option>
+                <option value="group D">Group D</option>
+                <option value="group E">Group E</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Parental Education -->
+          <div class="form-group">
+            <label for="parental_level_of_education">Parental Level of Education</label>
+            <select id="parental_level_of_education" name="parental_level_of_education">
+              <option value="high school">High School</option>
+              <option value="some high school">Some High School</option>
+              <option value="some college" selected>Some College</option>
+              <option value="associate's degree">Associate's Degree</option>
+              <option value="bachelor's degree">Bachelor's Degree</option>
+              <option value="master's degree">Master's Degree</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <!-- Lunch -->
+            <div class="form-group">
+              <label for="lunch">Lunch Type</label>
+              <select id="lunch" name="lunch">
+                <option value="standard" selected>Standard</option>
+                <option value="free/reduced">Free / Reduced</option>
+              </select>
+            </div>
+
+            <!-- Test Prep Course -->
+            <div class="form-group">
+              <label for="test_preparation_course">Test Prep Course</label>
+              <select id="test_preparation_course" name="test_preparation_course">
+                <option value="none" selected>None</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Academic Scores -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reading_score">Reading Score</label>
+              <div class="score-input-container">
+                <input type="number" id="reading_score" name="reading_score" min="0" max="100" placeholder="e.g. 75" value="" required>
+                <span>/ 100</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="writing_score">Writing Score</label>
+              <div class="score-input-container">
+                <input type="number" id="writing_score" name="writing_score" min="0" max="100" placeholder="e.g. 78" value="" required>
+                <span>/ 100</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="submit" id="submit-btn" class="btn-submit" style="flex: 1;">
+              Predict Math Marks & Save
+            </button>
+            <button type="button" id="reset-btn" class="btn-submit" style="width: auto; padding: 0 16px; background: rgba(255, 255, 255, 0.08); box-shadow: none; border: 1px solid var(--card-border);">
+              Clear Form
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Prediction Result & History -->
+      <div class="card">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+          Predicted Marks & Private History
+        </h2>
+
+        <!-- Active Prediction Result Container -->
+        <div id="result-container">
+          {% if predicted_score is defined and predicted_score is not none %}
+          <div class="result-box">
+            <div class="result-label">Predicted Math Score</div>
+            <div class="result-score">{{ predicted_score }} <span>/ 100</span></div>
+            <div class="result-target-name">Student: <strong>{{ current_client }}</strong></div>
+            <div class="db-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Data Saved
+            </div>
+          </div>
+          {% else %}
+          <div class="empty-state">
+            Fill in your exam details on the left and click <strong>Predict Math Marks</strong> to generate your forecast.
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Client Prediction History (Strictly Isolated to Current User) -->
+        <div class="history-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label id="history-label" style="margin-bottom: 0;">
+              {% if current_client %}
+                Your Past Records (<strong>{{ current_client }}</strong>):
+              {% else %}
+                Your Past Records:
+              {% endif %}
+            </label>
+            <span id="record-count" style="font-size: 0.75rem; color: #94a3b8;">
+              {{ client_history|length if client_history else 0 }} record(s)
+            </span>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Reading</th>
+                  <th>Writing</th>
+                  <th>Predicted Math</th>
+                  <th>Recorded At</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody">
+                {% if client_history %}
+                  {% for item in client_history %}
+                  <tr>
+                    <td><strong>{{ item.client_name }}</strong></td>
+                    <td>{{ item.reading_score|int }}</td>
+                    <td>{{ item.writing_score|int }}</td>
+                    <td class="badge-score">{{ item.predicted_math_score }}</td>
+                    <td style="font-size: 0.75rem; color: #94a3b8;">{{ item.created_at[:16] }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr id="empty-history-row">
+                    <td colspan="5" style="text-align: center; color: #64748b; padding: 25px;">
+                      {% if current_client %}
+                        No past prediction records found for <strong>{{ current_client }}</strong>.
+                      {% else %}
+                        Enter your name above to view your personal prediction records.
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>
+      Student Privacy Protected • Each student can only view their own prediction records
+    </footer>
+  </div>
+
+  <script>
+    // 1. Prevent form resubmission prompts on browser reload
+    if (window.history.replaceState) {
+      window.history.replaceState(null, null, window.location.pathname);
+    }
+
+    const form = document.getElementById('prediction-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const lookupBtn = document.getElementById('lookup-btn');
+    const clientNameInput = document.getElementById('client_name');
+    const resultContainer = document.getElementById('result-container');
+    const historyTbody = document.getElementById('history-tbody');
+    const historyLabel = document.getElementById('history-label');
+    const recordCountSpan = document.getElementById('record-count');
+    const activeUserBadge = document.getElementById('active-user-badge');
+
+    // 2. Helper to fetch and render strictly one user's history
+    async function loadUserHistory(name) {
+      if (!name || !name.trim()) return;
+      try {
+        const res = await fetch('/history/' + encodeURIComponent(name.trim()));
+        const data = await res.json();
+        const records = data.records || [];
+        
+        historyLabel.innerHTML = `Your Past Records (<strong>${data.client_name}</strong>):`;
+        recordCountSpan.innerText = `${records.length} record(s)`;
+        activeUserBadge.innerHTML = `Active: <strong>${data.client_name}</strong> (<a href="/clear-session" style="color: #f43f5e; text-decoration: none;">Switch</a>)`;
+        
+        // Save to browser localStorage for seamless reloads
+        localStorage.setItem('active_student_name', data.client_name);
+
+        if (records.length > 0) {
+          historyTbody.innerHTML = records.map(item => `
+            <tr>
+              <td><strong>${item.client_name}</strong></td>
+              <td>${Math.round(item.reading_score)}</td>
+              <td>${Math.round(item.writing_score)}</td>
+              <td class="badge-score">${item.predicted_math_score}</td>
+              <td style="font-size: 0.75rem; color: #94a3b8;">${item.created_at ? item.created_at.substring(0, 16) : ''}</td>
+            </tr>
+          `).join('');
+        } else {
+          historyTbody.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align: center; color: #64748b; padding: 25px;">
+                No past prediction records found for <strong>${data.client_name}</strong>.
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        console.error('History load error:', err);
+      }
+    }
+
+    // 3. On page load / reload, if a student was active, load ONLY their history
+    window.addEventListener('DOMContentLoaded', function() {
+      const storedName = localStorage.getItem('active_student_name');
+      const currentInputName = clientNameInput.value.trim();
+      const targetName = currentInputName || storedName;
+      if (targetName) {
+        clientNameInput.value = targetName;
+        loadUserHistory(targetName);
+      }
+    });
+
+    // 4. "Load History" manual button
+    lookupBtn.addEventListener('click', function() {
+      const name = clientNameInput.value.trim();
+      if (!name) {
+        alert('Please enter your student name first.');
+        return;
+      }
+      loadUserHistory(name);
+    });
+
+    // 5. Clear Form functionality
+    resetBtn.addEventListener('click', function() {
+      document.getElementById('reading_score').value = '';
+      document.getElementById('writing_score').value = '';
+    });
+
+    // 6. Handle Switch User / Log out
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'switch-user-link') {
+        localStorage.removeItem('active_student_name');
+      }
+    });
+
+    // 7. Prediction Form Submit (AJAX)
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const clientName = clientNameInput.value.trim();
+      if (!clientName) {
+        alert('Please enter your student name.');
+        return;
+      }
+
+      const readingScore = parseFloat(document.getElementById('reading_score').value);
+      const writingScore = parseFloat(document.getElementById('writing_score').value);
+
+      if (isNaN(readingScore) || isNaN(writingScore)) {
+        alert('Please enter valid scores between 0 and 100.');
+        return;
+      }
+
+      const payload = {
+        client_name: clientName,
+        gender: document.getElementById('gender').value,
+        race_ethnicity: document.getElementById('race_ethnicity').value,
+        parental_level_of_education: document.getElementById('parental_level_of_education').value,
+        lunch: document.getElementById('lunch').value,
+        test_preparation_course: document.getElementById('test_preparation_course').value,
+        reading_score: readingScore,
+        writing_score: writingScore
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Predicting & Saving...';
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Display predicted score
+          resultContainer.innerHTML = `
+            <div class="result-box">
+              <div class="result-label">Predicted Math Score</div>
+              <div class="result-score">${data.predicted_score} <span>/ 100</span></div>
+              <div class="result-target-name">Student: <strong>${data.client_name}</strong></div>
+              <div class="db-tag">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Data Saved
+              </div>
+            </div>
+          `;
+
+          // Refresh history strictly for this student
+          loadUserHistory(data.client_name);
+
+          // Clear score inputs for convenience
+          document.getElementById('reading_score').value = '';
+          document.getElementById('writing_score').value = '';
+        } else {
+          alert('Prediction error: ' + (data.error || 'Failed to predict'));
+        }
+      } catch (err) {
+        alert('Communication error: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Predict Math Marks & Save';
+      }
+    });
+  </script>
+</body>
+</html>

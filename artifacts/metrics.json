@@ -1,0 +1,49 @@
+{
+    "best_model": "Ridge Regression",
+    "r2_score": 0.8806,
+    "mae": 4.21,
+    "all_results": [
+        {
+            "Model": "Ridge Regression",
+            "R2 Score": 0.8806,
+            "MAE": 4.21,
+            "RMSE": 5.39
+        },
+        {
+            "Model": "Linear Regression",
+            "R2 Score": 0.8804,
+            "MAE": 4.21,
+            "RMSE": 5.39
+        },
+        {
+            "Model": "Gradient Boosting",
+            "R2 Score": 0.8733,
+            "MAE": 4.26,
+            "RMSE": 5.55
+        },
+        {
+            "Model": "Random Forest",
+            "R2 Score": 0.8504,
+            "MAE": 4.7,
+            "RMSE": 6.03
+        },
+        {
+            "Model": "Hist Gradient Boosting",
+            "R2 Score": 0.8425,
+            "MAE": 4.65,
+            "RMSE": 6.19
+        },
+        {
+            "Model": "Support Vector Regressor",
+            "R2 Score": 0.8203,
+            "MAE": 4.8,
+            "RMSE": 6.61
+        },
+        {
+            "Model": "K-Nearest Neighbors",
+            "R2 Score": 0.7937,
+            "MAE": 5.54,
+            "RMSE": 7.09
+        }
+    ]
+}
